@@ -1,0 +1,13 @@
+/**
+ * @file
+ *
+ * @brief Build version info
+ */
+
+const char *gVersionGitBranch = "@GIT_COMMIT_BRANCH@";
+const char *gVersionGitHash = "@GIT_COMMIT_HASH@";
+const char *gVersionBuildArch = "@CMAKE_SYSTEM_PROCESSOR@";
+const char *gVersionBuildType = "@CMAKE_BUILD_TYPE@";
+const char *gVersionBuildUser = "@BUILD_USERNAME@";
+const char *gVersionBuildHost = "@BUILD_HOSTNAME@";
+const char *gVersionBuildDate = __DATE__ " " __TIME__;
