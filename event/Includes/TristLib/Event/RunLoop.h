@@ -1,5 +1,5 @@
-#ifndef SUPPORT_EVENTLOOP_H
-#define SUPPORT_EVENTLOOP_H
+#ifndef TRISTLIB_EVENT_RUNLOOP_H
+#define TRISTLIB_EVENT_RUNLOOP_H
 
 #include <sys/signal.h>
 

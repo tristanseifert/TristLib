@@ -54,6 +54,14 @@ SystemWatchdog::SystemWatchdog(const std::shared_ptr<RunLoop> &loop) {
 }
 
 /**
+ * @brief Clean up watchdog resources
+ */
+SystemWatchdog::~SystemWatchdog() {
+    // TODO: should we check the watchdog was previously stopped?
+}
+
+
+/**
  * @brief Start watchdog handling
  */
 void SystemWatchdog::start() {
