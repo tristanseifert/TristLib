@@ -58,16 +58,20 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/BuildInfo.c.in
 set(BuildInfoFile "${CMAKE_CURRENT_BINARY_DIR}/BuildInfo.c")
 
 ####################################################################################################
-# include sources for core library, and build it into a single monolith
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/core)
-
+# create the full (everything) TristLib target
 add_library(tristlib ${TRISTLIB_BUILD_STYLE}
     ${BuildInfoFile}
-    $<TARGET_OBJECTS:tristlib-core>
 )
-set_target_properties(tristlib PROPERTIES LIBRARY_OUTPUT_NAME trist)
 
+set_target_properties(tristlib PROPERTIES LIBRARY_OUTPUT_NAME trist)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS tristlib)
+
+####################################################################################################
+# include core library
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/core)
+
+target_sources(tristlib PUBLIC $<TARGET_OBJECTS:tristlib-core>)
+target_link_libraries(tristlib PUBLIC tristlib-core)
 
 ####################################################################################################
 # include additional components
@@ -75,5 +79,5 @@ if(${TRISTLIB_BUILD_EVENT})
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/event)
 
     target_sources(tristlib PUBLIC $<TARGET_OBJECTS:tristlib-event>)
-    target_link_libraries(tristlib PRIVATE tristlib-event)
+    target_link_libraries(tristlib PUBLIC tristlib-event)
 endif()
