@@ -34,6 +34,8 @@ endif()
 
 message(STATUS "TristLib build style: ${TRISTLIB_BUILD_STYLE}")
 
+option(TRISTLIB_BUILD_EVENT "Build TristLib event loop support" ON)
+
 ####################################################################################################
 # Create a version file
 execute_process(
@@ -66,3 +68,12 @@ add_library(tristlib ${TRISTLIB_BUILD_STYLE}
 set_target_properties(tristlib PROPERTIES LIBRARY_OUTPUT_NAME trist)
 
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS tristlib)
+
+####################################################################################################
+# include additional components
+if(${TRISTLIB_BUILD_EVENT})
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/event)
+
+    target_sources(tristlib PUBLIC $<TARGET_OBJECTS:tristlib-event>)
+    target_link_libraries(tristlib PRIVATE tristlib-event)
+endif()

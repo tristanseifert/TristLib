@@ -31,5 +31,3 @@ target_link_libraries(tristlib-core PUBLIC plog::plog)
 
 target_include_directories(tristlib-core PRIVATE ${CMAKE_CURRENT_LIST_DIR}/Sources)
 target_include_directories(tristlib-core PUBLIC ${CMAKE_CURRENT_LIST_DIR}/Includes)
-
-add_library(${PROJECT_NAME}::core ALIAS tristlib-core)
