@@ -34,6 +34,13 @@ class ListenSocket {
 
         ~ListenSocket();
 
+        /**
+         * @brief Get the underlying file descriptor
+         */
+        constexpr inline auto getFd() const {
+            return this->fd;
+        }
+
     private:
         void makeEvent(const std::shared_ptr<RunLoop> &);
         void listen();
