@@ -12,6 +12,7 @@ pkg_search_module(PKG_LIBEVENT REQUIRED libevent)
 # Define the library
 add_library(tristlib-event OBJECT
     Sources/RunLoop.cpp
+    Sources/ListenSocket.cpp
     Sources/Timer.cpp
     Sources/Signal.cpp
     Sources/SystemWatchdog.cpp

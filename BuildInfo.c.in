@@ -4,10 +4,10 @@
  * @brief Build version info
  */
 
-const char *gVersionGitBranch = "@GIT_COMMIT_BRANCH@";
-const char *gVersionGitHash = "@GIT_COMMIT_HASH@";
-const char *gVersionBuildArch = "@CMAKE_SYSTEM_PROCESSOR@";
-const char *gVersionBuildType = "@CMAKE_BUILD_TYPE@";
-const char *gVersionBuildUser = "@BUILD_USERNAME@";
-const char *gVersionBuildHost = "@BUILD_HOSTNAME@";
-const char *gVersionBuildDate = __DATE__ " " __TIME__;
+const char *gVersionGitBranch __attribute__((used,retain)) = "@GIT_COMMIT_BRANCH@";
+const char *gVersionGitHash __attribute__((used,retain)) = "@GIT_COMMIT_HASH@";
+const char *gVersionBuildArch __attribute__((used,retain)) = "@CMAKE_SYSTEM_PROCESSOR@";
+const char *gVersionBuildType __attribute__((used,retain)) = "@CMAKE_BUILD_TYPE@";
+const char *gVersionBuildUser __attribute__((used,retain)) = "@BUILD_USERNAME@";
+const char *gVersionBuildHost __attribute__((used,retain)) = "@BUILD_HOSTNAME@";
+const char *gVersionBuildDate __attribute__((used,retain)) = __DATE__ " " __TIME__;
