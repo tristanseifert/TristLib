@@ -119,7 +119,7 @@ namespace TristLib::Core::HexDump {
                    << offset << "  ";
         }
 
-        dumpHexLine(output, bytes);
+        DumpHexLine(output, bytes);
     }
 
     // Dump bytes from input stream in side-by-side hex and text formats
@@ -158,14 +158,14 @@ namespace TristLib::Core::HexDump {
             bytesToDump.push_back(static_cast<char>(input[bytesRead++]));
 
             if(bytesToDump.size() == BytesPerLine) {
-                dumpHexLine(output, offset, bytesToDump);
+                DumpHexLine(output, offset, bytesToDump);
                 bytesToDump.clear();
                 offset += BytesPerLine;
             }
         }
 
         if(!bytesToDump.empty()) {
-            dumpHexLine(output, offset, bytesToDump);
+            DumpHexLine(output, offset, bytesToDump);
         }
     }
 }
