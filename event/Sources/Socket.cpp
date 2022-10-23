@@ -1,7 +1,4 @@
-#include <fcntl.h>
-#include <unistd.h>
 #include <sys/socket.h>
-#include <sys/un.h>
 
 #include <event2/event.h>
 #include <event2/buffer.h>
@@ -49,7 +46,8 @@ Socket::Socket(const std::shared_ptr<RunLoop> &loop, const int fd, const bool cl
             (*sock->writeCallback)(sock);
         }
     }, [](auto bev, auto what, auto ctx) {
-        reinterpret_cast<Socket *>(ctx)->handleEvents(what);
+        auto sock = reinterpret_cast<Socket *>(ctx);
+        sock->handleEvents(what);
     }, this);
 }
 
@@ -187,18 +185,6 @@ void Socket::handleEvents(const size_t flags) {
  * @return Total number of bytes read
  */
 size_t Socket::read(std::span<std::byte> readData) {
-/*
-    // get pending bytes
-    auto buf = bufferevent_get_input(this->event);
-
-    // remove as many bytes as we can
-    auto read = evbuffer_remove(buf, static_cast<void *>(readData.data()), readData.size());
-    if(read == -1) {
-        throw std::runtime_error("evbuffer_remove failed");
-    }
-
-    return read;
-*/
     return bufferevent_read(this->event, reinterpret_cast<void *>(readData.data()),
             readData.size());
 }
@@ -211,12 +197,6 @@ size_t Socket::read(std::span<std::byte> readData) {
  * @param writeData Data to write to the socket
  */
 size_t Socket::write(std::span<const std::byte> writeData) {
-/*
-    int err = write(this->fd, writeData.data(), writeData.size());
-    if(err == -1) {
-        throw std::system_error(errno, std::generic_category(), "write");
-    }
-*/
     return bufferevent_write(this->event, reinterpret_cast<const void *>(writeData.data()),
             writeData.size());
 }

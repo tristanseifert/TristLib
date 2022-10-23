@@ -170,3 +170,18 @@ void ListenSocket::listen() {
         throw std::system_error(errno, std::generic_category(), "start listening on socket");
     }
 }
+
+/**
+ * @brief Accept a pending client connection
+ *
+ * @return File descriptor for the accepted client
+ */
+int ListenSocket::accept() {
+    // TODO: get sockaddr for source address?
+    int fd = ::accept(this->fd, nullptr, nullptr);
+    if(fd == -1) {
+        throw std::system_error(errno, std::generic_category(), "accept");
+    }
+
+    return fd;
+}
