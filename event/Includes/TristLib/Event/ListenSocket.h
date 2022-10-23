@@ -41,6 +41,8 @@ class ListenSocket {
             return this->fd;
         }
 
+        int accept();
+
     private:
         void makeEvent(const std::shared_ptr<RunLoop> &);
         void listen();

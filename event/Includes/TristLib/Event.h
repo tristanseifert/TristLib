@@ -5,6 +5,7 @@
 #include <TristLib/Event/ListenSocket.h>
 #include <TristLib/Event/Timer.h>
 #include <TristLib/Event/Signal.h>
+#include <TristLib/Event/Socket.h>
 #include <TristLib/Event/SystemWatchdog.h>
 
 #endif

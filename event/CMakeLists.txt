@@ -15,6 +15,7 @@ add_library(tristlib-event OBJECT
     Sources/ListenSocket.cpp
     Sources/Timer.cpp
     Sources/Signal.cpp
+    Sources/Socket.cpp
     Sources/SystemWatchdog.cpp
 )
 
