@@ -3,6 +3,9 @@
 #include <event2/event.h>
 #include <event2/buffer.h>
 #include <event2/bufferevent.h>
+#include <event2/bufferevent_ssl.h>
+
+#include <openssl/ssl.h>
 
 #include <cerrno>
 #include <stdexcept>
@@ -34,8 +37,47 @@ Socket::Socket(const std::shared_ptr<RunLoop> &loop, const int fd, const bool cl
 
     this->event = bev;
 
-    // set up the callbacks
-    bufferevent_setcb(bev, [](auto bev, auto ctx) {
+    this->installCallbacks(bev);
+}
+
+/**
+ * @brief Create a new socket event source, with an existing socket, which uses TLS
+ *
+ * Creates a socket that can perform SSL communication without any application intervention. The
+ * SSL handshake is performed automatically.
+ *
+ * @param loop Run loop to add the event source to
+ * @param fd Socket to wrap (assumed to be accepted already)
+ * @param sslCtx OpenSSL client context for the socket
+ * @param closeFd When set, the socket is closed automatically on deallocation
+ */
+Socket::Socket(const std::shared_ptr<RunLoop> &loop, const int fd, SSL *sslCtx,
+        const bool closeFd) : fd(fd) {
+    // make the socket non-blocking
+    int err = evutil_make_socket_nonblocking(fd);
+    if(err == -1) {
+        throw std::system_error(errno, std::generic_category(), "evutil_make_socket_nonblocking");
+    }
+
+    // create the event
+    auto bev = bufferevent_openssl_socket_new(loop->getEvBase(), fd, sslCtx,
+            BUFFEREVENT_SSL_ACCEPTING, closeFd ? BEV_OPT_CLOSE_ON_FREE : 0);
+    if(!bev) {
+        throw std::runtime_error("failed to create SSL bufevent");
+    }
+
+    this->event = bev;
+
+    this->installCallbacks(bev);
+}
+
+/**
+ * @brief Install socket callbacks
+ *
+ * @param event Buffer event to install callbacks on
+ */
+void Socket::installCallbacks(struct bufferevent *event) {
+    bufferevent_setcb(event, [](auto bev, auto ctx) {
         auto sock = reinterpret_cast<Socket *>(ctx);
         if(sock->readCallback.has_value()) {
             (*sock->readCallback)(sock);

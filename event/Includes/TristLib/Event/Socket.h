@@ -42,6 +42,8 @@ class Socket {
 
     public:
         Socket(const std::shared_ptr<RunLoop> &loop, const int fd, const bool closeFd = true);
+        Socket(const std::shared_ptr<RunLoop> &loop, const int fd, struct ssl_st /* SSL */ *sslCtx,
+                const bool closeFd = true);
         ~Socket();
 
         size_t read(std::span<std::byte> readData);
@@ -98,6 +100,7 @@ class Socket {
         }
 
     private:
+        void installCallbacks(struct bufferevent *);
         void handleEvents(const size_t);
 
     private:
