@@ -16,6 +16,56 @@
 using namespace TristLib::Event;
 
 /**
+ * @brief Create a new socket that's not yet connected
+ *
+ * You must connect the socket before attempting to read or write to it.
+ *
+ * @param loop Run loop to add the event source to
+ * @parm type Type of socket to create
+ */
+Socket::Socket(const std::shared_ptr<RunLoop> &loop, const int type) {
+    if(type != SOCK_STREAM) {
+        // TODO: support other socket types
+        throw std::invalid_argument("invalid type");
+    }
+
+    auto bev = bufferevent_socket_new(loop->getEvBase(), -1, BEV_OPT_CLOSE_ON_FREE);
+    if(!bev) {
+        throw std::runtime_error("failed to create bufevent");
+    }
+
+    this->installCallbacks(bev);
+    this->event = bev;
+}
+
+/**
+ * @brief Create a new SSL socket that's not yet connected
+ *
+ * You must connect the socket before attempting to read or write to it.
+ *
+ * @param loop Run loop to add the event source to
+ * @param ssl SSL context to install
+ * @parm type Type of socket to create
+ */
+Socket::Socket(const std::shared_ptr<RunLoop> &loop, SSL *sslCtx, const int type) {
+    if(type != SOCK_STREAM) {
+        // TODO: support other socket types
+        throw std::invalid_argument("invalid type");
+    }
+
+    auto bev = bufferevent_openssl_socket_new(loop->getEvBase(), -1, sslCtx,
+            BUFFEREVENT_SSL_CONNECTING, BEV_OPT_CLOSE_ON_FREE);
+    if(!bev) {
+        throw std::runtime_error("failed to create SSL bufevent");
+    }
+
+    this->event = bev;
+
+    this->installCallbacks(bev);
+}
+
+
+/**
  * @brief Create a new socket event source, with an existing socket
  *
  * @param loop Run loop to add the event source to
@@ -105,6 +155,20 @@ Socket::~Socket() {
 }
 
 
+
+/**
+ * @brief Connect to the specified host
+ *
+ * @param hostname Host to connect to
+ * @param port Port to connect to
+ */
+void Socket::connect(const std::string_view &hostname, const uint16_t port) {
+    int err = bufferevent_socket_connect_hostname(this->event, nullptr, AF_UNSPEC, hostname.data(),
+            port);
+    if(err == -1) {
+        throw std::system_error(errno, std::generic_category(), "bufferevent_socket_connect_hostname");
+    }
+}
 
 /**
  * @brief Update the socket's water mark
@@ -241,4 +305,17 @@ size_t Socket::read(std::span<std::byte> readData) {
 size_t Socket::write(std::span<const std::byte> writeData) {
     return bufferevent_write(this->event, reinterpret_cast<const void *>(writeData.data()),
             writeData.size());
+}
+
+/**
+ * @brief Get the most recent OpenSSL error
+ *
+ * If the bufferevent was created with an SSL context, retrieve the most recent SSL error.
+ *
+ * @return OpenSSL error from error stack, or 0 if none.
+ *
+ * @remark Behavior is undefined if the socket wasn't created with an SSL context.
+ */
+unsigned long Socket::getSslError() {
+    return bufferevent_get_openssl_error(this->event);
 }

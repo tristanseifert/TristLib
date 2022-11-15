@@ -1,12 +1,16 @@
 #ifndef TRISTLIB_EVENT_SOCKET_H
 #define TRISTLIB_EVENT_SOCKET_H
 
+#include <sys/socket.h>
+
 #include <cstddef>
 #include <functional>
 #include <memory>
 #include <optional>
 #include <span>
 #include <utility>
+
+struct ssl_st;
 
 namespace TristLib::Event {
 class RunLoop;
@@ -41,13 +45,21 @@ class Socket {
         using EventCallback = std::function<void(Socket *, const Event)>;
 
     public:
+        Socket(const std::shared_ptr<RunLoop> &loop, const int type = SOCK_STREAM);
+        Socket(const std::shared_ptr<RunLoop> &loop, struct ssl_st /* SSL */ *sslCtx,
+                const int type = SOCK_STREAM);
+
         Socket(const std::shared_ptr<RunLoop> &loop, const int fd, const bool closeFd = true);
         Socket(const std::shared_ptr<RunLoop> &loop, const int fd, struct ssl_st /* SSL */ *sslCtx,
                 const bool closeFd = true);
         ~Socket();
 
+        void connect(const std::string_view &hostname, const uint16_t port);
+
         size_t read(std::span<std::byte> readData);
         size_t write(std::span<const std::byte> writeData);
+
+        unsigned long getSslError();
 
         /**
          * @brief Update the write watermark
