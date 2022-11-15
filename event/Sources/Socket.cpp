@@ -29,7 +29,8 @@ Socket::Socket(const std::shared_ptr<RunLoop> &loop, const int type) {
         throw std::invalid_argument("invalid type");
     }
 
-    auto bev = bufferevent_socket_new(loop->getEvBase(), -1, BEV_OPT_CLOSE_ON_FREE);
+    auto bev = bufferevent_socket_new(loop->getEvBase(), -1,
+            BEV_OPT_CLOSE_ON_FREE | BEV_OPT_DEFER_CALLBACKS);
     if(!bev) {
         throw std::runtime_error("failed to create bufevent");
     }
@@ -54,7 +55,7 @@ Socket::Socket(const std::shared_ptr<RunLoop> &loop, SSL *sslCtx, const int type
     }
 
     auto bev = bufferevent_openssl_socket_new(loop->getEvBase(), -1, sslCtx,
-            BUFFEREVENT_SSL_CONNECTING, BEV_OPT_CLOSE_ON_FREE);
+            BUFFEREVENT_SSL_CONNECTING, BEV_OPT_CLOSE_ON_FREE | BEV_OPT_DEFER_CALLBACKS);
     if(!bev) {
         throw std::runtime_error("failed to create SSL bufevent");
     }
@@ -80,7 +81,8 @@ Socket::Socket(const std::shared_ptr<RunLoop> &loop, const int fd, const bool cl
     }
 
     // create the event
-    auto bev = bufferevent_socket_new(loop->getEvBase(), fd, closeFd ? BEV_OPT_CLOSE_ON_FREE : 0);
+    auto bev = bufferevent_socket_new(loop->getEvBase(), fd,
+            (closeFd ? BEV_OPT_CLOSE_ON_FREE : 0) | BEV_OPT_DEFER_CALLBACKS);
     if(!bev) {
         throw std::runtime_error("failed to create bufevent");
     }
@@ -111,7 +113,8 @@ Socket::Socket(const std::shared_ptr<RunLoop> &loop, const int fd, SSL *sslCtx,
 
     // create the event
     auto bev = bufferevent_openssl_socket_new(loop->getEvBase(), fd, sslCtx,
-            BUFFEREVENT_SSL_ACCEPTING, closeFd ? BEV_OPT_CLOSE_ON_FREE : 0);
+            BUFFEREVENT_SSL_ACCEPTING,
+            (closeFd ? BEV_OPT_CLOSE_ON_FREE : 0) | BEV_OPT_DEFER_CALLBACKS);
     if(!bev) {
         throw std::runtime_error("failed to create SSL bufevent");
     }
@@ -318,4 +321,24 @@ size_t Socket::write(std::span<const std::byte> writeData) {
  */
 unsigned long Socket::getSslError() {
     return bufferevent_get_openssl_error(this->event);
+}
+
+/**
+ * @brief Flush the socket's write buffers
+ */
+void Socket::flushWriteBuffer() {
+    int err = bufferevent_flush(this->event, EV_WRITE, BEV_FLUSH);
+    if(err == -1) {
+        throw std::system_error(errno, std::generic_category(), "bufferevent_flush failed");
+    }
+}
+
+/**
+ * @brief Manually increment the reference count
+ *
+ * This is useful when mixing our C++ wrappers with other LibEvent code, such as the HTTP library,
+ * which takes ownership over some objects and may lead to double frees.
+ */
+void Socket::incref() {
+    bufferevent_incref(this->event);
 }

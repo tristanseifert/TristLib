@@ -11,6 +11,7 @@
 #include <utility>
 
 struct ssl_st;
+struct bufferevent;
 
 namespace TristLib::Event {
 class RunLoop;
@@ -61,6 +62,9 @@ class Socket {
 
         unsigned long getSslError();
 
+        void flushWriteBuffer();
+        void incref();
+
         /**
          * @brief Update the write watermark
          *
@@ -109,6 +113,13 @@ class Socket {
          */
         inline void setEventCallback(const EventCallback &newCallback) {
             this->eventCallback = newCallback;
+        }
+
+        /**
+         * @brief Return the underlying libevent object
+         */
+        inline auto getEvent() {
+            return this->event;
         }
 
     private:

@@ -7,6 +7,9 @@
 #include <cstddef>
 #include <memory>
 
+struct event_base;
+struct event;
+
 namespace TristLib::Event {
 class Source;
 

@@ -9,6 +9,7 @@
 #include <cbor.h>
 
 #include <stdexcept>
+#include <string>
 #include <string_view>
 
 namespace TristLib::Core {
@@ -58,6 +59,20 @@ constexpr inline static double CborReadFloat(const cbor_item_t *item) {
         default:
             throw std::runtime_error("invalid float width");
     }
+}
+
+/**
+ * @brief Read a CBOR string
+ *
+ * @param item CBOR item to read
+ */
+inline static std::string CborReadString(const cbor_item_t *item) {
+    if(!cbor_isa_string(item)) {
+        throw std::runtime_error("invalid type (expected string)");
+    }
+
+    return std::string(reinterpret_cast<char *>(cbor_string_handle(item)),
+            cbor_string_length(item));
 }
 
 /**
