@@ -15,6 +15,7 @@ find_package(OpenSSL REQUIRED)
 # Define the library
 add_library(tristlib-event OBJECT
     Sources/RunLoop.cpp
+    Sources/FileDescriptor.cpp
     Sources/Flag.cpp
     Sources/ListenSocket.cpp
     Sources/Timer.cpp

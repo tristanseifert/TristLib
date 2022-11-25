@@ -130,7 +130,7 @@ class Socket {
         /// Underlying file descriptor
         const int fd{-1};
         /// Bufferevent for the socket
-        struct bufferevent *event{nullptr};
+        struct ::bufferevent *event{nullptr};
 
         /// Read callback
         std::optional<DataCallback> readCallback;
