@@ -1,5 +1,7 @@
 #include <event2/event.h>
 
+#include <stdexcept>
+
 #include "TristLib/Event.h"
 
 using namespace TristLib::Event;
@@ -13,12 +15,18 @@ using namespace TristLib::Event;
  * @param loop Run loop to add the event source to
  */
 Flag::Flag(const std::shared_ptr<RunLoop> &loop) {
+    int err;
     auto ev = event_new(loop->getEvBase(), -1, EV_READ, [](auto fd, auto events, auto ctx) {
         auto flag = reinterpret_cast<Flag *>(ctx);
         flag->callback(flag);
     }, this);
 
     this->event = ev;
+
+    err = event_add(this->event, nullptr);
+    if(err != 0) {
+        throw std::runtime_error("failed to add flag to run loop");
+    }
 }
 
 /**
@@ -26,6 +34,7 @@ Flag::Flag(const std::shared_ptr<RunLoop> &loop) {
  */
 Flag::~Flag() {
     if(this->event) {
+        event_del(this->event);
         event_free(this->event);
     }
 }
