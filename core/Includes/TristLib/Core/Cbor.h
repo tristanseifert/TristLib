@@ -122,6 +122,36 @@ constexpr inline const cbor_item_t *CborMapGet(const cbor_item_t *map,
 
     return nullptr;
 }
+
+/**
+ * @brief Decode a timestamp
+ *
+ * Read a timestamp (previously encoded using the "epoch based date/time" mechanism) from the
+ * provided CBOR item. It must be tagged (with tag 1) to be considered a valid timestamp.
+ *
+ * @return The read timestamp value
+ */
+template<class Clock = std::chrono::system_clock>
+inline static std::chrono::time_point<Clock> CborReadTimestamp(const cbor_item_t *item) {
+    using namespace std::chrono;
+    double secs;
+
+    // read seconds
+    if(!cbor_isa_tag(item)) {
+        throw std::invalid_argument("invalid argument (expected tagged item)");
+    }
+    auto payload = cbor_tag_item(item);
+    if(cbor_isa_float_ctrl(payload)) {
+        secs = CborReadFloat(payload);
+    } else if(cbor_isa_uint(payload)) {
+        secs = CborReadUint(payload);
+    }
+    cbor_decref(&payload);
+
+    // then convert it to a chrono time point
+    const auto usec = duration_cast<microseconds>(duration<double>(secs));
+    return time_point<Clock>(usec);
+}
 }
 
 #endif
