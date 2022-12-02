@@ -8,11 +8,35 @@
 
 #include <cbor.h>
 
+#include <chrono>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 
 namespace TristLib::Core {
+/**
+ * @brief Encode a timestamp
+ *
+ * This writes the timestamp as a floating point value since the UNIX epoch, and tags it as such
+ * in the CBOR output.
+ *
+ * See RFC8949 section 3.4.2 for the details of this encoding.
+ *
+ * @param time Time value to encode
+ */
+template<class Clock>
+constexpr inline static cbor_item_t *CborEncodeTimestamp(const std::chrono::time_point<Clock> time) {
+    using namespace std::chrono;
+
+    auto timestamp = cbor_new_tag(1);
+    if(!timestamp) {
+        return nullptr;
+    }
+    cbor_tag_set_item(timestamp,
+            cbor_build_float8(duration_cast<duration<double>>(time.time_since_epoch()).count()));
+    return timestamp;
+}
+
 /**
  * @brief Read a CBOR integer value
  *
