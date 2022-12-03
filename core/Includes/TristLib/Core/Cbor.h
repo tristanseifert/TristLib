@@ -28,12 +28,13 @@ template<class Clock>
 constexpr inline static cbor_item_t *CborEncodeTimestamp(const std::chrono::time_point<Clock> time) {
     using namespace std::chrono;
 
+    const auto epoch = duration_cast<duration<double>>(time.time_since_epoch()).count();
+
     auto timestamp = cbor_new_tag(1);
     if(!timestamp) {
         return nullptr;
     }
-    cbor_tag_set_item(timestamp,
-            cbor_build_float8(duration_cast<duration<double>>(time.time_since_epoch()).count()));
+    cbor_tag_set_item(timestamp, cbor_move(cbor_build_float8(epoch)));
     return timestamp;
 }
 
