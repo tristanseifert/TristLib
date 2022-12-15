@@ -16,7 +16,7 @@ using namespace TristLib::Event;
  */
 Flag::Flag(const std::shared_ptr<RunLoop> &loop) {
     int err;
-    auto ev = event_new(loop->getEvBase(), -1, EV_READ, [](auto fd, auto events, auto ctx) {
+    auto ev = event_new(loop->getEvBase(), -1, EV_READ | EV_PERSIST, [](auto fd, auto events, auto ctx) {
         auto flag = reinterpret_cast<Flag *>(ctx);
         flag->callback(flag);
     }, this);
