@@ -37,12 +37,14 @@ target_include_directories(tristlib-event PUBLIC ${CMAKE_CURRENT_LIST_DIR}/Inclu
 # Add support for systemd watchdog (if on Linux)
 if(UNIX AND NOT APPLE)
     pkg_search_module(PKG_SYSTEMD libsystemd)
-    target_link_directories(tristlib-event PUBLIC ${PKG_SYSTEMD_LIBRARY_DIRS})
+    if(PKG_SYSTEMD_FOUND)
+        target_link_directories(tristlib-event PUBLIC ${PKG_SYSTEMD_LIBRARY_DIRS})
 
-    message(STATUS "Building with systemd support")
+        message(STATUS "Building with systemd support")
 
-    target_include_directories(tristlib-event PRIVATE ${PKG_SYSTEMD_INCLUDE_DIRS})
-    target_link_libraries(tristlib-event PUBLIC ${PKG_SYSTEMD_LIBRARIES})
+        target_include_directories(tristlib-event PRIVATE ${PKG_SYSTEMD_INCLUDE_DIRS})
+        target_link_libraries(tristlib-event PUBLIC ${PKG_SYSTEMD_LIBRARIES})
 
-    target_compile_definitions(tristlib-event PRIVATE -DCONFIG_WITH_SYSTEMD)
+        target_compile_definitions(tristlib-event PRIVATE -DCONFIG_WITH_SYSTEMD)
+    endif()
 endif()
