@@ -18,6 +18,8 @@ class Timer;
  */
 class SystemWatchdog {
     public:
+        static bool IsSupported() noexcept;
+
         SystemWatchdog(const std::shared_ptr<RunLoop> &loop);
         ~SystemWatchdog();
 

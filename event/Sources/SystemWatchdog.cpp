@@ -13,6 +13,19 @@
 using namespace TristLib::Event;
 
 /**
+ * @brief Check whether this platform supports watchdogs.
+ */
+bool SystemWatchdog::IsSupported() noexcept {
+#if defined(CONFIG_WITH_SYSTEMD)
+    return true;
+#else
+    return false;
+#endif
+}
+
+
+
+/**
  * @brief Initialize system watchdog
  *
  * Determine the watchdog period and set up general state. The watchdog handling is not actually
