@@ -11,6 +11,8 @@
 #include <plog/Log.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <plog/Appenders/ConsoleAppender.h>
+#include <plog/Appenders/RollingFileAppender.h>
+#include <plog/Formatters/CsvFormatter.h>
 #include <plog/Formatters/FuncMessageFormatter.h>
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Init.h>
@@ -56,6 +58,14 @@ constexpr static inline auto TranslateLogLevel(const int level) {
     }
 
     return logLevel;
+}
+
+/**
+ * @brief Install a logging appender
+ */
+static void InstallAppender(plog::IAppender *appender) {
+    plog::get()->addAppender(appender);
+    gAppenders.push_back(appender);
 }
 
 /**
@@ -126,9 +136,37 @@ void AddLogDestinationStdout(const bool simple, const bool colorize) noexcept {
             appender = new plog::ConsoleAppender<plog::TxtFormatter>();
         }
     }
-
-    plog::get()->addAppender(appender);
-    gAppenders.push_back(appender);
+    InstallAppender(appender);
 }
 
+}
+
+/**
+ * @brief Send log messages to a file
+ *
+ * Set up a log file to which all subsequent log messages are sent.
+ *
+ * If both maxFileSize and maxFiles are nonzero, the log file will automatically be rolled if its
+ * size exceeds a certain value.
+ *
+ * @remark The file is not created until the first message is sent.
+ *
+ * @param file Path to the log file
+ * @param maxFileSize Maximum size of the log file, in bytes
+ * @param maxFiles Maximum number of log files
+ * @param csv Whether the log file is formatted as a CSV
+ */
+void AddLogDestinationFile(const std::filesystem::path &path, const size_t maxFileSize,
+        const size_t maxFiles, const bool csv) {
+    plog::IAppender *appender{nullptr};
+
+    if(csv) {
+        appender = new plog::RollingFileAppender<plog::CsvFormatter>(path.native().c_str(),
+                maxFileSize, maxFiles);
+    } else {
+        appender = new plog::RollingFileAppender<plog::FuncMessageFormatter>(path.native().c_str(),
+                maxFileSize, maxFiles);
+    }
+    InstallAppender(appender);
+}
 }
