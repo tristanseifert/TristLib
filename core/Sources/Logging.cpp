@@ -17,6 +17,7 @@
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Init.h>
 
+#include "SyslogAppender.h"
 #include "TristLib/Core/Logging.h"
 
 namespace TristLib::Core {
@@ -33,31 +34,23 @@ static std::list<plog::IAppender *> gAppenders;
  * This will convert the integral log levels (centered around 0, where negative values mean less
  * logging, and positive values more) into the associated plog level.
  */
-constexpr static inline auto TranslateLogLevel(const int level) {
-    plog::Severity logLevel{plog::Severity::info};
-
+constexpr static inline auto TranslateLogLevel(const int level) noexcept {
     switch(std::max(std::min(level, 2), -3)) {
         case -3:
-            logLevel = plog::Severity::fatal;
-            break;
+            return plog::Severity::fatal;
         case -2:
-            logLevel = plog::Severity::error;
-            break;
+            return plog::Severity::error;
         case -1:
-            logLevel = plog::Severity::warning;
-            break;
+            return plog::Severity::warning;
         case 0:
-            logLevel = plog::Severity::info;
-            break;
+            return plog::Severity::info;
         case 1:
-            logLevel = plog::Severity::debug;
-            break;
+            return plog::Severity::debug;
         case 2:
-            logLevel = plog::Severity::verbose;
-            break;
+            return plog::Severity::verbose;
+        default: // should never be reached
+            return plog::Severity::none;
     }
-
-    return logLevel;
 }
 
 /**
@@ -139,6 +132,19 @@ void AddLogDestinationStdout(const bool simple, const bool colorize) noexcept {
     InstallAppender(appender);
 }
 
+/**
+ * @brief Send log messages to syslog
+ *
+ * Log messages are sent to the system log via the C library's `syslog()` function under the given
+ * facility.
+ */
+void AddLogDestinationSyslog(const int facility, const std::string_view ident) noexcept {
+    // open the log connection
+    openlog(ident.data(), 0, facility);
+
+    // create an appender
+    auto appender = new SyslogAppender<plog::FuncMessageFormatter>();
+    InstallAppender(appender);
 }
 
 /**
@@ -168,5 +174,18 @@ void AddLogDestinationFile(const std::filesystem::path &path, const size_t maxFi
                 maxFileSize, maxFiles);
     }
     InstallAppender(appender);
+}
+
+
+
+/**
+ * @brief Update the log level
+ */
+void SetLogLevel(const int logLevel) {
+    if(logLevel < -3 || logLevel > 2) {
+        throw std::invalid_argument("invalid log level (must be [-3, 2])");
+    }
+
+    plog::get()->setMaxSeverity(TranslateLogLevel(logLevel));
 }
 }
